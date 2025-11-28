@@ -110,9 +110,16 @@ public class Program
             }
         }
     }
-    private void DecreaseQuality(Item item, int amount)
+     private static void DecreaseQuality(Item item, int amount)
     {
-        item.Quality = Math.Max(0, item.Quality - amount);
+        var effectiveAmount = amount;
+
+        if (item.Name.StartsWith("Conjured"))
+        {
+            effectiveAmount *= 2;
+        }
+
+        item.Quality = Math.Max(0, item.Quality - effectiveAmount);
     }
 }
 
