@@ -3,114 +3,149 @@ using System.Collections.Generic;
 
 namespace GildedRose.Console;
 
+/// <summary>
+/// Gilded Rose inventory management system that updates item quality and sell-in values
+/// based on specific rules for different item types.
+/// </summary>
 public class Program
 {
-    public IList<Item> Items = new List<Item>();
+    private const string SulfurasName = "Sulfuras, Hand of Ragnaros";
 
+    public IList<Item> Items { get; set; } = new List<Item>();
+
+    /// <summary>
+    /// Entry point for the application. Initializes inventory and runs quality updates.
+    /// </summary>
     static void Main(string[] args)
     {
         System.Console.WriteLine("OMGHAI!");
 
-        var app = new Program()
-                      {
-                          Items = new List<Item>
-                                      {
-                                          new Item {Name = "+5 Dexterity Vest", SellIn = 10, Quality = 20},
-                                          new Item {Name = "Aged Brie", SellIn = 2, Quality = 0},
-                                          new Item {Name = "Elixir of the Mongoose", SellIn = 5, Quality = 7},
-                                          new Item {Name = "Sulfuras, Hand of Ragnaros", SellIn = 0, Quality = 80},
-                                          new Item
-                                              {
-                                                  Name = "Backstage passes to a TAFKAL80ETC concert",
-                                                  SellIn = 15,
-                                                  Quality = 20
-                                              },
-                                          new Item {Name = "Conjured Mana Cake", SellIn = 3, Quality = 6}
-                                      }
-
-                      };
+        var app = new Program
+        {
+            Items = new List<Item>
+            {
+                new Item {Name = "+5 Dexterity Vest", SellIn = 10, Quality = 20},
+                new Item {Name = "Aged Brie", SellIn = 2, Quality = 0},
+                new Item {Name = "Elixir of the Mongoose", SellIn = 5, Quality = 7},
+                new Item {Name = SulfurasName, SellIn = 0, Quality = 80},
+                new Item
+                {
+                    Name = "Backstage passes to a TAFKAL80ETC concert",
+                    SellIn = 15,
+                    Quality = 20
+                },
+                new Item {Name = "Conjured Mana Cake", SellIn = 3, Quality = 6}
+            }
+        };
 
         app.UpdateQuality();
 
         System.Console.ReadKey();
     }
 
+    /// <summary>
+    /// Updates the quality and sell-in values for all items in inventory.
+    /// </summary>
     public void UpdateQuality()
     {
-        for (var i = 0; i < Items.Count; i++)
+        foreach (var item in Items)
         {
-            if (Items[i].Name != "Aged Brie" && Items[i].Name != "Backstage passes to a TAFKAL80ETC concert")
+            UpdateItem(item);
+        }
+    }
+
+    /// <summary>
+    /// Updates a single item's quality and sell-in value based on item type and business rules.
+    /// </summary>
+    /// <param name="item">The item to update</param>
+    private static void UpdateItem(Item item)
+    {
+        // Sulfuras never changes
+        if (item.Name == SulfurasName)
+        {
+            return;
+        }
+
+        bool isAgedBrie = item.Name == "Aged Brie";
+        bool isBackstage = item.Name == "Backstage passes to a TAFKAL80ETC concert";
+
+        // 1) Update quality before SellIn decreases
+        if (isAgedBrie)
+        {
+            IncreaseQuality(item, 1);
+        }
+        else if (isBackstage)
+        {
+            UpdateBackstagePass(item);
+        }
+        else
+        {
+            // normal or conjured item
+            DecreaseQuality(item, 1);
+        }
+
+        // 2) Decrease SellIn for all non-Sulfuras items
+        item.SellIn--;
+
+        // 3) Apply rules after SellIn has passed
+        if (item.SellIn < 0)
+        {
+            if (isAgedBrie)
             {
-                if (Items[i].Quality > 0)
-                {
-                    if (Items[i].Name != "Sulfuras, Hand of Ragnaros")
-                    {
-                        DecreaseQuality(Items[i], 1);
-                    }
-                }
+                // Aged Brie increases faster after sell date
+                IncreaseQuality(item, 1);
+            }
+            else if (isBackstage)
+            {
+                // Backstage passes drop to 0 after the concert
+                item.Quality = 0;
             }
             else
             {
-                if (Items[i].Quality < 50)
-                {
-                    Items[i].Quality = Items[i].Quality + 1;
-
-                    if (Items[i].Name == "Backstage passes to a TAFKAL80ETC concert")
-                    {
-                        if (Items[i].SellIn < 11)
-                        {
-                            if (Items[i].Quality < 50)
-                            {
-                                Items[i].Quality = Items[i].Quality + 1;
-                            }
-                        }
-
-                        if (Items[i].SellIn < 6)
-                        {
-                            if (Items[i].Quality < 50)
-                            {
-                                Items[i].Quality = Items[i].Quality + 1;
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (Items[i].Name != "Sulfuras, Hand of Ragnaros")
-            {
-                Items[i].SellIn = Items[i].SellIn - 1;
-            }
-
-            if (Items[i].SellIn < 0)
-            {
-                if (Items[i].Name != "Aged Brie")
-                {
-                    if (Items[i].Name != "Backstage passes to a TAFKAL80ETC concert")
-                    {
-                        if (Items[i].Quality > 0)
-                        {
-                            if (Items[i].Name != "Sulfuras, Hand of Ragnaros")
-                            {
-                                DecreaseQuality(Items[i], 1);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        Items[i].Quality = Items[i].Quality - Items[i].Quality;
-                    }
-                }
-                else
-                {
-                    if (Items[i].Quality < 50)
-                    {
-                        Items[i].Quality = Items[i].Quality + 1;
-                    }
-                }
+                // normal or conjured: degrade again
+                DecreaseQuality(item, 1);
             }
         }
     }
-     private static void DecreaseQuality(Item item, int amount)
+
+    /// <summary>
+    /// Handles quality updates for Backstage passes based on days until concert.
+    /// Quality increases by 1 normally, +2 at 10 days or less, +3 at 5 days or less.
+    /// </summary>
+    /// <param name="item">The backstage pass item to update</param>
+    private static void UpdateBackstagePass(Item item)
+    {
+        // Base increase
+        IncreaseQuality(item, 1);
+
+        if (item.SellIn <= 10)
+        {
+            IncreaseQuality(item, 1);
+        }
+
+        if (item.SellIn <= 5)
+        {
+            IncreaseQuality(item, 1);
+        }
+    }
+
+    /// <summary>
+    /// Increases item quality by the specified amount, capped at 50.
+    /// </summary>
+    /// <param name="item">The item to increase quality for</param>
+    /// <param name="amount">The amount to increase by</param>
+    private static void IncreaseQuality(Item item, int amount)
+    {
+        item.Quality = Math.Min(50, item.Quality + amount);
+    }
+
+    /// <summary>
+    /// Decreases item quality by the specified amount, ensuring it doesn't go below 0.
+    /// Conjured items degrade twice as fast as normal items.
+    /// </summary>
+    /// <param name="item">The item to decrease quality for</param>
+    /// <param name="amount">The base amount to decrease by</param>
+    private static void DecreaseQuality(Item item, int amount)
     {
         var effectiveAmount = amount;
 
@@ -123,11 +158,23 @@ public class Program
     }
 }
 
+/// <summary>
+/// Represents an item in the Gilded Rose inventory.
+/// </summary>
 public class Item
 {
+    /// <summary>
+    /// The name of the item (determines special behavior rules).
+    /// </summary>
     public string Name { get; set; } = "";
 
+    /// <summary>
+    /// The number of days left to sell this item. Decreases by 1 each day.
+    /// </summary>
     public int SellIn { get; set; }
 
+    /// <summary>
+    /// The quality value of the item (0-50, except Sulfuras which is always 80).
+    /// </summary>
     public int Quality { get; set; }
 }
