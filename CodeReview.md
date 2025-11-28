@@ -1,3 +1,11 @@
+### Use of Generative AI
+
+In accordance with the guidelines for this exercise, I want to briefly document how generative AI was used. I carried out the code review myself and identified the issues listed below based on my own reading of the code. After writing my initial assessment, I used ChatGPT to help refine phrasing, improve clarity, and make the explanations more specific and easy to read. The tool was used purely for polishing and checking my communication, not to produce the underlying conclusions.
+
+I have a general understanding of the problems highlighted (such as naming inconsistencies, incorrect date handling, misuse of randomness, and logic errors), and the review reflects the reasoning I applied while going through the code. While AI helped me articulate some of the points more clearly, the insights originate from my own analysis. I will do my best to discuss my thought process during the interview.
+
+AI was used as a productivity aid, and I take responsibility for the final content of this review.
+
 1. Invalid using directive
 
 using System.Collegctions.Generic;

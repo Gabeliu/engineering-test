@@ -1,4 +1,16 @@
-﻿using System;
+﻿/* Usage of Generative AI
+
+For transparency, I want to briefly note how I used generative AI while working on this exercise:
+
+- I implemented the DecreaseQuality logic myself, including the decision to centralize Conjured-item behavior there.
+- I initially refactored the structure of UpdateQuality and item-type handling on my own, and I used ChatGPT afterwards to help rework and improve the clarity of the final version.
+- The AI tool also helped me polish the XML documentation comments and make the explanations more readable.
+- For unit tests, I started by writing some basic test cases myself, and then used AI to help expand coverage, refine edge cases, and improve naming and structure.
+
+All final code and tests were manually reviewed and adjusted by me. AI was used as a productivity tool to clean up wording, suggest improvements, and check for missed scenarios — not to replace my own reasoning. I understand the general logic behind the refactor and tests, and I’ll do my best to discuss the decisions during the interview.
+*/
+
+using System;
 using System.Collections.Generic;
 
 namespace GildedRose.Console;
