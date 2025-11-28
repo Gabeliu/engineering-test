@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace GildedRose.Console;
 
@@ -44,7 +45,7 @@ public class Program
                 {
                     if (Items[i].Name != "Sulfuras, Hand of Ragnaros")
                     {
-                        Items[i].Quality = Items[i].Quality - 1;
+                        DecreaseQuality(Items[i], 1);
                     }
                 }
             }
@@ -90,7 +91,7 @@ public class Program
                         {
                             if (Items[i].Name != "Sulfuras, Hand of Ragnaros")
                             {
-                                Items[i].Quality = Items[i].Quality - 1;
+                                DecreaseQuality(Items[i], 1);
                             }
                         }
                     }
@@ -108,6 +109,10 @@ public class Program
                 }
             }
         }
+    }
+    private void DecreaseQuality(Item item, int amount)
+    {
+        item.Quality = Math.Max(0, item.Quality - amount);
     }
 }
 
